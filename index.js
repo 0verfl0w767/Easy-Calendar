@@ -12,6 +12,8 @@ db.run(`CREATE TABLE IF NOT EXISTS events (
   color TEXT NOT NULL DEFAULT '#0288d1'
 )`)
 
+const ADMIN_PASSWORD = "admin"
+
 const app = express()
 
 app.use(bodyParser.json())
@@ -27,21 +29,28 @@ app.get("/api/events", (req, res) => {
   })
 })
 
-app.post("/api/events", (req, res) => {
-  const { title, start, end, color } = req.body
-  db.run(
-    "INSERT INTO events (title, start, end, color) VALUES (?, ?, ?, ?)",
-    [title, start, end, color],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message })
-      res.json({ id: this.lastID })
-    },
-  )
+app.post('/api/events', (req, res) => {
+  const { title, start, end, color, password } = req.body
+  
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(403).json({ error: "관리자 비밀번호가 틀렸습니다." })
+  }
+  
+  db.run("INSERT INTO events (title, start, end, color) VALUES (?, ?, ?, ?)", [title, start, end, color], function(err) {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json({ id: this.lastID })
+  })
 })
 
-app.delete("/api/events/:id", (req, res) => {
+app.delete('/api/events/:id', (req, res) => {
   const id = req.params.id
-  db.run("DELETE FROM events WHERE id = ?", [id], function (err) {
+  const { password } = req.body
+  
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(403).json({ error: "관리자 비밀번호가 틀렸습니다." })
+  }
+  
+  db.run("DELETE FROM events WHERE id = ?", [id], function(err) {
     if (err) return res.status(500).json({ error: err.message })
     res.json({ success: true })
   })
