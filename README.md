@@ -8,6 +8,8 @@
 
 ✅ 일정 삭제 (일정 클릭 시 삭제 가능)
 
+✅ 관리자 비밀번호 (추가, 삭제시 관리자 비밀번호 확인)
+
 ![image](https://github.com/user-attachments/assets/b419b17e-ae74-4822-b562-4566308d7d36)
 
 ![image](https://github.com/user-attachments/assets/866e51eb-8d04-43d4-888f-33d62a11da26)
