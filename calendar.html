@@ -144,6 +144,11 @@
         border-color: #999;
         color: white;
       }
+
+      .other-month {
+        color: #aaa;
+        background-color: #f5f5f5;
+      }
     </style>
   </head>
   <body>
@@ -317,12 +322,19 @@
 
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const prevMonthDays = new Date(year, month, 0).getDate();
 
         let row = calendar.insertRow();
         let cellCount = 0;
 
-        for (let i = 0; i < firstDay; i++) {
-          row.insertCell();
+        for (let i = firstDay - 1; i >= 0; i--) {
+          const cell = row.insertCell();
+          cell.innerHTML = `<strong>${prevMonthDays - i}</strong>`;
+          cell.classList.add("other-month");
+
+          const prevDate = new Date(year, month - 1, prevMonthDays - i);
+          renderSchedulesInCell(cell, prevDate);
+
           cellCount++;
         }
 
@@ -433,6 +445,42 @@
 
           cellCount++;
         }
+
+        let nextDate = 1;
+        while (cellCount < 7) {
+          const cell = row.insertCell();
+          cell.innerHTML = `<strong>${nextDate}</strong>`;
+          cell.classList.add("other-month");
+
+          const nextDayDate = new Date(year, month + 1, nextDate);
+          renderSchedulesInCell(cell, nextDayDate);
+
+          nextDate++;
+          cellCount++;
+        }
+      }
+
+      function renderSchedulesInCell(cell, targetDate) {
+        scheduleData.forEach((event) => {
+          const start = new Date(event.start);
+          const end = new Date(event.end);
+          const tTarget = timezoneConvert(targetDate);
+          const tStart = timezoneConvert(start);
+          const tEnd = timezoneConvert(end);
+
+          if (tTarget >= tStart && tTarget <= tEnd) {
+            const div = document.createElement("div");
+            div.className = "schedule";
+            div.textContent = event.title;
+            const color = "#aaa";
+            div.style.backgroundColor = color;
+            div.onclick = (e) => {
+              e.stopPropagation();
+              alert("미리보기에서는 삭제를 지원하지 않아요.");
+            };
+            cell.appendChild(div);
+          }
+        });
       }
 
       function timezoneConvert(d) {
