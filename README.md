@@ -2,7 +2,9 @@
 
 ✅ 월 변경 (화살표 클릭으로 자유롭게 변경 가능)
 
-✅ 일정 확인 (달력 표로 확인 가능)
+✅ 일정 확인 (일정을 달력 표로 확인 가능)
+
+✅ 일정 미리보기 (일정이 이어져 있는 경우 미리보기 가능)
 
 ✅ 일정 추가 (일정 제목, 기간, 색깔 설정 가능)
 
@@ -17,3 +19,5 @@
 ![image](https://github.com/user-attachments/assets/5ea88aa5-56e3-46f2-98b6-45101330f637)
 
 ![image](https://github.com/user-attachments/assets/46698435-a0ed-4b50-8754-5605e8d4935b)
+
+![image](https://github.com/user-attachments/assets/67d6f462-e1ce-4861-8af9-ad826550fb36)
