@@ -84,22 +84,6 @@
         padding: 2px 4px;
       }
 
-      #colorModal {
-        display: none;
-        position: fixed;
-        top: 30%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        padding: 20px;
-        border: 1px solid #ccc;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-        width: 250px;
-        text-align: center;
-        border-radius: 6px;
-      }
-
       #modalOverlay {
         display: none;
         position: fixed;
@@ -111,15 +95,28 @@
         z-index: 999;
       }
 
-      #colorModal input[type="color"] {
-        width: 100%;
-        height: 40px;
-        border: none;
-        cursor: pointer;
+      #addEventModal {
+        position: fixed;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        width: 300px;
+        border-radius: 6px;
       }
 
-      #colorModal button {
-        margin: 25px 10px 0 10px;
+      #addEventModal input {
+        box-sizing: border-box;
+        padding: 5px;
+        margin-top: 5px;
+      }
+
+      #addEventModal button {
+        margin: 10px 5px 0;
         padding: 6px 12px;
         cursor: pointer;
         font-weight: 600;
@@ -128,20 +125,21 @@
         background-color: #0288d1;
         color: white;
         transition: background-color 0.3s ease;
+        line-height: 1.2;
       }
 
-      #colorModal button:hover {
+      #addEventModal button:hover {
         background-color: #026aa7;
         border-color: #026aa7;
       }
 
-      #colorModal #cancelColorBtn {
+      #cancelAddBtn {
         background-color: #ccc;
         border-color: #ccc;
         color: #333;
       }
 
-      #colorModal #cancelColorBtn:hover {
+      #cancelAddBtn:hover {
         background-color: #999;
         border-color: #999;
         color: white;
@@ -170,16 +168,47 @@
         <tbody></tbody>
       </table>
     </div>
-
-    <div id="colorModal">
-      <h3>색깔 선택</h3>
-      <input type="color" id="colorPicker" value="#0288d1" />
-      <div>
-        <button id="cancelColorBtn">취소</button>
-        <button id="okColorBtn">확인</button>
+    <div id="modalOverlay" style="display: none"></div>
+    <div id="addEventModal" style="display: none" class="modal">
+      <h3 style="margin: 0 0 1em 0">일정 추가</h3>
+      <div style="margin-bottom: 10px">
+        <label
+          >제목<br />
+          <input type="text" id="eventTitle" style="width: 100%" />
+        </label>
       </div>
+      <div style="margin-bottom: 10px">
+        <label>
+          시작일<br />
+          <input type="date" id="eventStartDate" style="width: 100%" readonly />
+        </label>
+      </div>
+      <div style="margin-bottom: 10px">
+        <label
+          >종료일<br />
+          <input type="date" id="eventEndDate" style="width: 100%" />
+        </label>
+      </div>
+      <div style="margin-bottom: 10px">
+        <label
+          >색상<br />
+          <input
+            type="color"
+            id="eventColor"
+            style="width: 100%"
+            value="#0288d1"
+          />
+        </label>
+      </div>
+      <div style="margin-bottom: 10px">
+        <label
+          >비밀번호<br />
+          <input type="password" id="eventPassword" style="width: 100%" />
+        </label>
+      </div>
+      <button id="cancelAddBtn">취소</button>
+      <button id="confirmAddBtn">추가</button>
     </div>
-    <div id="modalOverlay"></div>
 
     <script>
       document.getElementById("prevMonth").onclick = () => changeMonth(-1);
@@ -227,28 +256,55 @@
         }
       }
 
-      function showColorModal() {
+      function showAddEventModal(defaultDate) {
         return new Promise((resolve, reject) => {
-          const modal = document.getElementById("colorModal");
+          const modal = document.getElementById("addEventModal");
           const overlay = document.getElementById("modalOverlay");
-          const colorInput = document.getElementById("colorPicker");
-          const cancelBtn = document.getElementById("cancelColorBtn");
-          const okBtn = document.getElementById("okColorBtn");
+
+          const startDateInput = document.getElementById("eventStartDate");
+          const titleInput = document.getElementById("eventTitle");
+          const endDateInput = document.getElementById("eventEndDate");
+          const colorInput = document.getElementById("eventColor");
+          const passwordInput = document.getElementById("eventPassword");
+
+          titleInput.value = "";
+          startDateInput.value = defaultDate;
+          endDateInput.value = defaultDate;
+          colorInput.value = "#0288d1";
+          passwordInput.value = "";
 
           modal.style.display = "block";
           overlay.style.display = "block";
 
+          const cancelBtn = document.getElementById("cancelAddBtn");
+          const confirmBtn = document.getElementById("confirmAddBtn");
+
           cancelBtn.onclick = () => {
             modal.style.display = "none";
             overlay.style.display = "none";
-            reject("취소됨");
+            reject("사용자 취소");
           };
 
-          okBtn.onclick = () => {
+          confirmBtn.onclick = () => {
+            const title = titleInput.value.trim();
+            const end = endDateInput.value;
             const color = colorInput.value;
+            const password = passwordInput.value;
+
+            if (!title || !end || !password) {
+              alert("모든 항목을 입력해 주세요.");
+              return;
+            }
+
+            if (new Date(end) < new Date(defaultDate)) {
+              alert("종료일은 시작일보다 빠를 수 없습니다.");
+              return;
+            }
+
             modal.style.display = "none";
             overlay.style.display = "none";
-            resolve(color);
+
+            resolve({ title, end, color, password });
           };
         });
       }
@@ -283,7 +339,11 @@
           scheduleData.forEach((event) => {
             const start = new Date(event.start);
             const end = new Date(event.end);
-            if (thisDate >= start && thisDate <= end) {
+            const tThisDate = timezoneConvert(thisDate);
+            const tStart = timezoneConvert(start);
+            const tEnd = timezoneConvert(end);
+
+            if (tThisDate >= tStart && tThisDate <= tEnd) {
               const div = document.createElement("div");
               div.className = "schedule";
               div.textContent = event.title;
@@ -296,7 +356,7 @@
                   `"${event.title}" 일정을 삭제할까요?`,
                 );
                 if (!confirmDelete) return;
-                
+
                 const password = prompt("관리자 비밀번호를 입력하세요:");
                 if (!password) return;
 
@@ -306,13 +366,13 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ password }),
                   });
-                  
+
                   if (!res.ok) {
                     const err = await res.json();
                     alert("삭제 실패: " + err.error);
                     return;
                   }
-                  
+
                   const index = scheduleData.findIndex(
                     (ev) => ev.id === event.id,
                   );
@@ -331,30 +391,21 @@
           addBtn.textContent = "+";
           addBtn.className = "add-btn";
           addBtn.onclick = async () => {
-            
-            const title = prompt(`${date}일 일정 제목 입력:`);
-            if (!title) return;
+            const startDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
+            let eventData;
 
-            const defaultEnd = `${year}-${month + 1}-${date}`;
-            const endInput = prompt("종료일 입력 (예: 2025-6-5):", defaultEnd);
-            if (!endInput) return;
-
-            let color;
             try {
-              color = await showColorModal();
+              eventData = await showAddEventModal(startDate);
             } catch {
-              color = getColorForTitle(title);
+              return;
             }
 
-            const password = prompt("관리자 비밀번호를 입력하세요:");
-            if (!password) return;
-
             const newEvent = {
-              title,
-              start: `${year}-${month + 1}-${date}`,
-              end: endInput,
-              color,
-              password,
+              title: eventData.title,
+              start: startDate,
+              end: eventData.end,
+              color: eventData.color,
+              password: eventData.password,
             };
 
             try {
@@ -363,13 +414,13 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newEvent),
               });
-              
+
               if (!res.ok) {
                 const err = await res.json();
                 alert("저장 실패: " + err.error);
                 return;
               }
-              
+
               const saved = await res.json();
               newEvent.id = saved.id;
               scheduleData.push(newEvent);
@@ -382,6 +433,10 @@
 
           cellCount++;
         }
+      }
+
+      function timezoneConvert(d) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
       }
 
       function changeMonth(offset) {
